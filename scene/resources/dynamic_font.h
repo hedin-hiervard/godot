@@ -71,12 +71,15 @@ public:
 		HINTING_NORMAL
 	};
 
+	bool is_antialiased() const;
+	void set_antialiased(bool p_antialiased);
 	Hinting get_hinting() const;
 	void set_hinting(Hinting p_hinting);
 
 private:
 	const uint8_t *font_mem;
 	int font_mem_size;
+	bool antialiased;
 	bool force_autohinter;
 	Hinting hinting;
 
@@ -300,6 +303,7 @@ VARIANT_ENUM_CAST(DynamicFont::SpacingType);
 /////////////
 
 class ResourceFormatLoaderDynamicFont : public ResourceFormatLoader {
+	GDCLASS(ResourceFormatLoaderDynamicFont, ResourceFormatLoader)
 public:
 	virtual RES load(const String &p_path, const String &p_original_path = "", Error *r_error = NULL);
 	virtual void get_recognized_extensions(List<String> *p_extensions) const;

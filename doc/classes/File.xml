@@ -330,7 +330,7 @@
 		<method name="store_csv_line">
 			<return type="void">
 			</return>
-			<argument index="0" name="values" type="PoolStringArray" default="&quot;,&quot;">
+			<argument index="0" name="values" type="PoolStringArray">
 			</argument>
 			<argument index="1" name="delim" type="String" default="&quot;,&quot;">
 			</argument>
@@ -404,7 +404,7 @@
 	</methods>
 	<members>
 		<member name="endian_swap" type="bool" setter="set_endian_swap" getter="get_endian_swap">
-			If [code]true[/code] the file's endianness is swapped. Use this if you're dealing with files written in big endian machines.
+			If [code]true[/code], the file's endianness is swapped. Use this if you're dealing with files written in big endian machines.
 			Note that this is about the file format, not CPU type. This is always reset to [code]false[/code] whenever you open the file.
 		</member>
 	</members>

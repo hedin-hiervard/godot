@@ -1504,7 +1504,7 @@ void gi_probe_compute(mediump sampler3D probe, mat4 probe_xform, vec3 bounds, ve
 
 	//irradiance
 
-	vec3 irr_light = voxel_cone_trace(probe, cell_size, probe_pos, environment, blend_ambient, ref_vec, max(min_ref_tan, tan(roughness * 0.5 * M_PI)), max_distance, p_bias);
+	vec3 irr_light = voxel_cone_trace(probe, cell_size, probe_pos, environment, blend_ambient, ref_vec, max(min_ref_tan, tan(roughness * 0.5 * M_PI * 0.99)), max_distance, p_bias);
 
 	irr_light *= multiplier;
 	//irr_light=vec3(0.0);
@@ -1565,6 +1565,7 @@ void main() {
 
 	//lay out everything, whathever is unused is optimized away anyway
 	highp vec3 vertex = vertex_interp;
+	vec3 view = -normalize(vertex_interp);
 	vec3 albedo = vec3(1.0);
 	vec3 transmission = vec3(0.0);
 	float metallic = 0.0;
@@ -1585,24 +1586,24 @@ void main() {
 
 	float alpha = 1.0;
 
-#if defined(DO_SIDE_CHECK)
-	float side = gl_FrontFacing ? 1.0 : -1.0;
-#else
-	float side = 1.0;
-#endif
-
 #if defined(ALPHA_SCISSOR_USED)
 	float alpha_scissor = 0.5;
 #endif
 
 #if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
-	vec3 binormal = normalize(binormal_interp) * side;
-	vec3 tangent = normalize(tangent_interp) * side;
+	vec3 binormal = normalize(binormal_interp);
+	vec3 tangent = normalize(tangent_interp);
 #else
 	vec3 binormal = vec3(0.0);
 	vec3 tangent = vec3(0.0);
 #endif
-	vec3 normal = normalize(normal_interp) * side;
+	vec3 normal = normalize(normal_interp);
+
+#if defined(DO_SIDE_CHECK)
+	if (!gl_FrontFacing) {
+		normal = -normal;
+	}
+#endif
 
 #if defined(ENABLE_UV_INTERP)
 	vec2 uv = uv_interp;
@@ -1658,7 +1659,7 @@ FRAGMENT_SHADER_CODE
 	normalmap.xy = normalmap.xy * 2.0 - 1.0;
 	normalmap.z = sqrt(max(0.0, 1.0 - dot(normalmap.xy, normalmap.xy))); //always ignore Z, as it can be RG packed, Z may be pos/neg, etc.
 
-	normal = normalize(mix(normal_interp, tangent * normalmap.x + binormal * normalmap.y + normal * normalmap.z, normaldepth)) * side;
+	normal = normalize(mix(normal, tangent * normalmap.x + binormal * normalmap.y + normal * normalmap.z, normaldepth));
 
 #endif
 
@@ -1699,7 +1700,7 @@ FRAGMENT_SHADER_CODE
 	vec3 ambient_light;
 	vec3 env_reflection_light = vec3(0.0, 0.0, 0.0);
 
-	vec3 eye_vec = -normalize(vertex_interp);
+	vec3 eye_vec = view;
 
 #ifdef USE_RADIANCE_MAP
 
@@ -2027,7 +2028,7 @@ FRAGMENT_SHADER_CODE
 		//apply fog
 
 		if (fog_depth_enabled) {
-			float fog_far = fog_depth_end > 0 ? fog_depth_end : z_far;
+			float fog_far = fog_depth_end > 0.0 ? fog_depth_end : z_far;
 
 			float fog_z = smoothstep(fog_depth_begin, fog_far, length(vertex));
 

@@ -3238,7 +3238,7 @@ bool SpatialEditorViewport::_create_instance(Node *parent, String &path, const P
 		if (mesh != NULL) {
 			MeshInstance *mesh_instance = memnew(MeshInstance);
 			mesh_instance->set_mesh(mesh);
-			mesh_instance->set_name(mesh->get_name());
+			mesh_instance->set_name(path.get_file().get_basename());
 			instanced_scene = mesh_instance;
 		} else {
 			if (!scene.is_valid()) { // invalid scene
@@ -4204,10 +4204,10 @@ void SpatialEditor::set_state(const Dictionary &p_state) {
 			gizmo_plugins.write[j]->set_state(state);
 
 			switch (state) {
-				case EditorSpatialGizmoPlugin::ON_TOP:
+				case EditorSpatialGizmoPlugin::VISIBLE:
 					gizmos_menu->set_item_icon(idx, gizmos_menu->get_icon("visibility_visible"));
 					break;
-				case EditorSpatialGizmoPlugin::VISIBLE:
+				case EditorSpatialGizmoPlugin::ON_TOP:
 					gizmos_menu->set_item_icon(idx, gizmos_menu->get_icon("visibility_xray"));
 					break;
 				case EditorSpatialGizmoPlugin::HIDDEN:
@@ -4317,10 +4317,10 @@ void SpatialEditor::_menu_gizmo_toggled(int p_option) {
 	// Change icon
 	const int state = gizmos_menu->get_item_state(idx);
 	switch (state) {
-		case EditorSpatialGizmoPlugin::ON_TOP:
+		case EditorSpatialGizmoPlugin::VISIBLE:
 			gizmos_menu->set_item_icon(idx, view_menu->get_popup()->get_icon("visibility_visible"));
 			break;
-		case EditorSpatialGizmoPlugin::VISIBLE:
+		case EditorSpatialGizmoPlugin::ON_TOP:
 			gizmos_menu->set_item_icon(idx, view_menu->get_popup()->get_icon("visibility_xray"));
 			break;
 		case EditorSpatialGizmoPlugin::HIDDEN:
@@ -4839,7 +4839,7 @@ void SpatialEditor::_init_gizmos_menu() {
 	for (int i = 0; i < gizmo_plugins.size(); ++i) {
 		if (!gizmo_plugins[i]->can_be_hidden()) continue;
 		String plugin_name = gizmo_plugins[i]->get_name();
-		gizmos_menu->add_multistate_item(TTR(plugin_name), 3, EditorSpatialGizmoPlugin::ON_TOP, i);
+		gizmos_menu->add_multistate_item(TTR(plugin_name), 3, EditorSpatialGizmoPlugin::VISIBLE, i);
 		gizmos_menu->set_item_icon(gizmos_menu->get_item_index(i), gizmos_menu->get_icon("visibility_visible"));
 	}
 }
@@ -5475,6 +5475,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 
 	transform_menu = memnew(MenuButton);
 	transform_menu->set_text(TTR("Transform"));
+	transform_menu->set_switch_on_hover(true);
 	hbc_menu->add_child(transform_menu);
 
 	p = transform_menu->get_popup();
@@ -5487,6 +5488,7 @@ SpatialEditor::SpatialEditor(EditorNode *p_editor) {
 
 	view_menu = memnew(MenuButton);
 	view_menu->set_text(TTR("View"));
+	view_menu->set_switch_on_hover(true);
 	hbc_menu->add_child(view_menu);
 
 	p = view_menu->get_popup();
@@ -5919,7 +5921,7 @@ void EditorSpatialGizmoPlugin::unregister_gizmo(EditorSpatialGizmo *p_gizmo) {
 }
 
 EditorSpatialGizmoPlugin::EditorSpatialGizmoPlugin() {
-	current_state = ON_TOP;
+	current_state = VISIBLE;
 }
 
 EditorSpatialGizmoPlugin::~EditorSpatialGizmoPlugin() {
